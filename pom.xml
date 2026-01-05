@@ -12,6 +12,39 @@
           <release>21</release>
         </configuration>
       </plugin>
+
+      <!-- Launch4j plugin to produce a Windows exe from the built jar -->
+      <plugin>
+        <groupId>com.akathist</groupId>
+        <artifactId>launch4j-maven-plugin</artifactId>
+        <version>1.7.25</version>
+        <configuration>
+          <!-- Output exe will be placed in target/ -->
+          <outfile>${project.build.directory}/${project.artifactId}.exe</outfile>
+          <!-- The jar to wrap -->
+          <jar>${project.build.directory}/${project.build.finalName}.jar</jar>
+          <dontWrapJar>false</dontWrapJar>
+          <headerType>console</headerType>
+          <chdir>.</chdir>
+          <jre>
+            <!-- minimum required JRE version on target machine -->
+            <minVersion>11</minVersion>
+          </jre>
+          <opt>
+            <option>-Dfile.encoding=UTF-8</option>
+          </opt>
+        </configuration>
+        <executions>
+          <execution>
+            <id>l4j-attach</id>
+            <phase>package</phase>
+            <goals>
+              <goal>launch4j</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 
