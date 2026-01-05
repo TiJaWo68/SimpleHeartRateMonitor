@@ -1,0 +1,54 @@
+name: Build Windows EXE and BLE helper
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Set up .NET 6 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Install Launch4j (choco)
+        run: choco install launch4j -y
+
+      - name: Publish BLE helper (self-contained exe)
+        working-directory: ./tools/ble-windows
+        run: |
+          dotnet restore
+          dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true -o publish
+
+      - name: Build Java project (package)
+        run: mvn -B -DskipTests package
+
+      - name: List built files
+        run: |
+          echo "Target files:"
+          dir target
+          echo "BLE publish files:"
+          dir tools\\ble-windows\\publish
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: simplehrm-windows-artifacts
+          path: |
+            target/*.exe
+            target/*.jar
+            tools/ble-windows/publish/*.exe

@@ -1,9 +1,14 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>SimpleHeartRateMonitor</groupId>
   <artifactId>SimpleHeartRateMonitor</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+
   <build>
+    <finalName>${project.artifactId}-${project.version}</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -13,37 +18,74 @@
         </configuration>
       </plugin>
 
-      <!-- Launch4j plugin to produce a Windows exe from the built jar -->
+      <!-- Create an uber-jar so Launch4j wraps a single fat jar -->
       <plugin>
-        <groupId>com.akathist</groupId>
-        <artifactId>launch4j-maven-plugin</artifactId>
-        <version>1.7.25</version>
-        <configuration>
-          <!-- Output exe will be placed in target/ -->
-          <outfile>${project.build.directory}/${project.artifactId}.exe</outfile>
-          <!-- The jar to wrap -->
-          <jar>${project.build.directory}/${project.build.finalName}.jar</jar>
-          <dontWrapJar>false</dontWrapJar>
-          <headerType>console</headerType>
-          <chdir>.</chdir>
-          <jre>
-            <!-- minimum required JRE version on target machine -->
-            <minVersion>11</minVersion>
-          </jre>
-          <opt>
-            <option>-Dfile.encoding=UTF-8</option>
-          </opt>
-        </configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.4.1</version>
         <executions>
           <execution>
-            <id>l4j-attach</id>
             <phase>package</phase>
             <goals>
-              <goal>launch4j</goal>
+              <goal>shade</goal>
             </goals>
+            <configuration>
+              <shadedArtifactAttached>false</shadedArtifactAttached>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <minimizeJar>false</minimizeJar>
+            </configuration>
           </execution>
         </executions>
       </plugin>
+
+      <!-- Launch4j plugin to produce a Windows exe from the built jar -->
+			<plugin>
+				<groupId>com.akathist.maven.plugins.launch4j</groupId>
+				<artifactId>launch4j-maven-plugin</artifactId>
+				<version>2.5.1</version>
+				<executions>
+					<execution>
+						<id>l4j-clui</id>
+						<phase>package</phase>
+						<goals>
+							<goal>launch4j</goal>
+						</goals>
+						<configuration>
+							<headerType>gui</headerType>
+							<jar>${project.build.directory}/${project.artifactId}-${file.version}.jar</jar>
+							<dontWrapJar>false</dontWrapJar>
+							<stayAlive>true</stayAlive>
+							<outfile>${project.build.directory}/${project.artifactId}.exe</outfile>
+							<downloadUrl>https://adoptopenjdk.net/installation.html#x64_win-jre</downloadUrl>
+							<classPath>
+								<mainClass>com.simplehrm.core.HeartRateMonitorApp</mainClass>
+								<jarLocation>lib/</jarLocation>
+							</classPath>
+							<!--<icon>src/main/resources/de/in/pacs/icons/table.ico</icon> -->
+							<jre>
+								<path>./jre</path>
+								<path>../runtime</path>
+								<minVersion>21</minVersion>
+								<opts>
+									<opt>--add-opens=java.base/java.io=ALL-UNNAMED</opt>
+								</opts>
+							</jre>
+							<versionInfo>
+								<fileVersion>${file.version}</fileVersion>
+								<txtFileVersion>${project.version}</txtFileVersion>
+								<fileDescription>${project.name}</fileDescription>
+								<copyright>IN</copyright>
+								<productVersion>${file.version}</productVersion>
+								<txtProductVersion>${project.version}</txtProductVersion>
+								<productName>${project.name}</productName>
+								<companyName>IN</companyName>
+								<internalName>${project.name}</internalName>
+								<originalFilename>${project.artifactId}.exe</originalFilename>
+							</versionInfo>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
     </plugins>
   </build>
